@@ -21,46 +21,52 @@
                 <label for="rate">Current Rate:</label>
                 <input type="text" class="form-control" name="rate" id="rate" required>
             </div>
-            <div class="form-group">
-                <label for="hours">Hours:</label>
-                <input type="text" class="form-control" name="hours" id="hours" required>
-            </div>
             <button type="submit" class="btn btn-primary">Calculate</button>
         </form>
 
-        <?php
+         <?php
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $voltage = $_POST["voltage"];
             $current = $_POST["current"];
             $rate = $_POST["rate"];
-            $hours = $_POST["hours"];
 
             // Validate input
-            if (isset($_POST["hours"]) && is_numeric($voltage) && is_numeric($current) && is_numeric($rate) && is_numeric($hours)) {
-                // Call the function and get the result
-                $energy = calculateEnergy($voltage, $current, $hours, $rate);
-
+            if (is_numeric($voltage) && is_numeric($current) && is_numeric($rate)) {
                 // Display the result in a table
                 echo "<h3 class='mt-4'>Calculation Result</h3>";
                 echo "<table class='table table-bordered'>";
-                echo "<thead class='thead-light'><tr><th>Voltage (V)</th><th>Current (A)</th><th>Rate</th><th>Hours of Usage</th><th>Energy Consumption (kWh)</th><th>Total Cost</th></tr></thead>";
-                echo "<tbody><tr><td>$voltage</td><td>$current</td><td>$rate</td><td>$hours</td><td>$energy</td><td>" . ($energy * ($rate / 100)) . "</td></tr></tbody>";
+                echo "<thead class='thead-light'><tr><th>#</th><th>Hours</th><th>Energy (kWh)</th><th>Total Cost (RM)</th></tr></thead>";
+                echo "<tbody>";
+                
+                // Calculate and display the result for each hour
+                for ($i = 1; $i <= 24; $i++) {
+                    $energy = calculateEnergy($voltage, $current, $i, $rate);
+                    $totalCost = calculateTotalCost($energy, $rate);
+
+                    echo "<tr><td>$i</td><td>$i</td><td>" . ($energy) . "</td><td>" . number_format($totalCost, 2) . 
+                    "</td></tr>";
+                }
+                
+                echo "</tbody>";
                 echo "</table>";
             } else {
-                echo "<p class='mt-4 text-danger'>Invalid input. Please enter numeric values for voltage, current, rate, and hours of usage.</p>";
+                echo "<p class='mt-4 text-danger'>Invalid input. Please enter numeric values for voltage, current, and rate.</p>";
             }
         }
 
         function calculateEnergy($voltage, $current, $hours, $rate) {
             $power = $voltage * $current; // Calculate power in Watts
-            $power_in_wh = $power * $hours; // Calculate power in Watt-hours
-            $energy_in_kwh = $power_in_wh / 1000; // Convert to kilowatt-hours
-            $total_energy = $energy_in_kwh * ($rate / 100); // Calculate total energy consumption
+            $energy_in_wh = $power * $hours; // Calculate energy in Watt-hours
+            $energy_in_kwh = $energy_in_wh / 1000; // Convert to kilowatt-hours
+            $total_energy = $energy_in_kwh * ($rate / 100); // Convert to kilowatt-hours
 
-            return $total_energy;
+            return $energy_in_kwh;
+        }
+
+        function calculateTotalCost($energy, $rate) {
+            return $energy * ($rate / 100);
         }
         ?>
     </div>
-    
 </body>
 </html>
